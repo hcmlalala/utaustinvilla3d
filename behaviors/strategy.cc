@@ -8,8 +8,59 @@ extern int agentBodyType;
  * Filling params x y angle
  */
 void NaoBehavior::beam( double& beamX, double& beamY, double& beamAngle ) {
-    beamX = -HALF_FIELD_X + worldModel->getUNum();
-    beamY = 0;
+    WorldObjType myNum=(WorldObjType)worldModel->getUNum();
+	switch (myNum)
+	{
+	//守门员
+	case WO_TEAMMATE1:
+		beamX = -FIELD_X + 2;
+		beamY = 0;
+		break;
+	//后卫*3
+	case WO_TEAMMATE2:
+		beamX = -HALF_FIELD_X / 2;
+		beamY = HALF_FIELD_Y / 2;
+		break;
+	case WO_TEAMMATE3:
+		beamX = -HALF_FIELD_X / 2;
+		beamY = -HALF_FIELD_Y / 2;
+		break;
+	case WO_TEAMMATE4:
+		beamX = -HALF_FIELD_X / 3;
+		beamY = 0;
+		break;
+	//前锋*7
+	case WO_TEAMMATE5:
+		beamX = -HALF_FIELD_X / 5;
+		beamY = -HALF_FIELD_Y / 4 * 3;
+		break;
+	case WO_TEAMMATE6:
+		beamX = -HALF_FIELD_X / 5;
+		beamY = -HALF_FIELD_Y / 4 * 2;
+		break;
+	case WO_TEAMMATE7:
+		beamX = -HALF_FIELD_X / 5;
+		beamY = -HALF_FIELD_Y / 4 * 1;
+		break;
+	case WO_TEAMMATE8:
+		beamX = -HALF_FIELD_X / 5;
+		beamY = -HALF_FIELD_Y / 4 * 0;
+		break;
+	case WO_TEAMMATE9:
+		beamX = -HALF_FIELD_X / 5;
+		beamY = HALF_FIELD_Y / 4 * 1;
+		break;
+	case WO_TEAMMATE10:
+		beamX = -HALF_FIELD_X / 5;
+		beamY = HALF_FIELD_Y / 4 * 2;
+		break;
+	case WO_TEAMMATE11:
+		beamX = -HALF_FIELD_X / 5;
+		beamY = HALF_FIELD_Y / 4 * 3;
+		break;
+	default:
+		break;
+	}
     beamAngle = 0;
 }
 
@@ -69,7 +120,113 @@ SkillType NaoBehavior::selectSkill() {
 
     // Demo behavior where players form a rotating circle and kick the ball
     // back and forth
-    return demoKickingCircle();
+	WorldObjType myNum = (WorldObjType)worldModel->getUNum();
+	switch (myNum)
+	{
+	case WO_TEAMMATE1:
+		return goalie();
+		break;
+	case WO_TEAMMATE2:
+	case WO_TEAMMATE3:
+	case WO_TEAMMATE4:
+		return guard();
+		break;
+	case WO_TEAMMATE5:
+	case WO_TEAMMATE6:
+	case WO_TEAMMATE7:
+	case WO_TEAMMATE8:
+	case WO_TEAMMATE9:
+	case WO_TEAMMATE10:
+	case WO_TEAMMATE11:
+		return vanguard();
+		break;
+	default:
+		break;
+	}
+}
+
+SkillType NaoBehavior::goalie()
+{
+	VecPosition myPosition = worldModel->getMyPosition();
+	if (myPosition.getDistanceTo(ball) > 3)
+		return SKILL_STAND;
+	else
+	{
+		// Find closest teammate to me
+		WorldObjType targetNUM = find_closet_obj_to_target(WO_TEAMMATE2, WO_TEAMMATE11, myPosition);
+		WorldObject* target = worldModel->getWorldObject((int)targetNUM);
+		
+		return kickBall(KICK_FORWARD, target->pos);
+	}
+}
+
+SkillType NaoBehavior::guard()
+{
+	VecPosition myPosition = worldModel->getMyPosition();
+	WorldObjType myNum = (WorldObjType)worldModel->getUNum();
+	VecPosition beamPos;
+	switch (myNum)
+	{
+	case WO_TEAMMATE2:
+		beamPos.setX(-HALF_FIELD_X / 2);
+		beamPos.setY(HALF_FIELD_Y / 2);
+		break;
+	case WO_TEAMMATE3:
+		beamPos.setX(-HALF_FIELD_X / 2);
+		beamPos.setY(-HALF_FIELD_Y / 2);
+		break;
+	case WO_TEAMMATE4:
+		beamPos.setX(-HALF_FIELD_X / 3);
+		beamPos.setY(0);
+		break;
+	default:
+		break;
+	}
+	beamPos.setZ(0);
+
+	if (myPosition.getDistanceTo(ball) > 5 || myPosition.getX() > 0)
+	{
+		SIM::AngDeg localbeamAngle = atan2Deg(0, myPosition.getX() + 1);//计算是否正对敌方
+		if (myPosition.getDistanceTo(beamPos) < 0.25 && abs(localbeamAngle) < 10)
+			return SKILL_STAND;
+		else if (myPosition.getDistanceTo(beamPos) < 0.5)
+			return goToTargetRelative(worldModel->g2l(beamPos), localbeamAngle);
+		else
+			return goToTarget(beamPos);
+	}
+	else
+	{
+		// Find closest player to ball
+		WorldObjType is_me = find_closet_obj_to_target(WO_TEAMMATE2, WO_TEAMMATE4, ball);
+		
+		if (worldModel->getUNum() == (int)is_me)
+		{
+			// Find closest player to me
+			WorldObjType targetNUM = find_closet_obj_to_target(WO_TEAMMATE5, WO_TEAMMATE11, myPosition);
+			WorldObject* target = worldModel->getWorldObject((int)targetNUM);
+			return kickBall(KICK_FORWARD, target->pos);
+		}
+		else
+			return goToTarget(ball);
+
+	}
+}
+
+SkillType NaoBehavior::vanguard()
+{
+	VecPosition goal(HALF_FIELD_X, 0, 0);
+	VecPosition myPosition = worldModel->getMyPosition();
+	WorldObjType closetNUM = find_closet_obj_to_target(WO_TEAMMATE5, WO_TEAMMATE11, ball);
+	if (worldModel->getUNum() == (int)closetNUM)
+		return kickBall(KICK_FORWARD,goal);
+	else
+	{
+		if ((ball.getX() - myPosition.getX()) > 0)
+			return goToTarget(myPosition + VecPosition(1, 0, 0));
+		else
+			return goToTarget(myPosition + VecPosition(-1, 0, 0));
+
+	}
 }
 
 
@@ -77,6 +234,8 @@ SkillType NaoBehavior::selectSkill() {
  * Demo behavior where players form a rotating circle and kick the ball
  * back and forth
  */
+
+
 SkillType NaoBehavior::demoKickingCircle() {
     // Parameters for circle
     VecPosition center = VecPosition(-HALF_FIELD_X/2.0, 0, 0);
@@ -109,29 +268,37 @@ SkillType NaoBehavior::demoKickingCircle() {
         }
     }
 
-    if (playerClosestToBall == worldModel->getUNum()) {
+    if (playerClosestToBall == worldModel->getUNum()) 
+	{
         // Have closest player kick the ball toward the center
         return kickBall(KICK_FORWARD, center);
-    } else {
+    }
+	else
+	{
         // Move to circle position around center and face the center
-        VecPosition localCenter = worldModel->g2l(center);
-        SIM::AngDeg localCenterAngle = atan2Deg(localCenter.getY(), localCenter.getX());
+        VecPosition localCenter = worldModel->g2l(center);//圆心绝对坐标转相对坐标
+        SIM::AngDeg localCenterAngle = atan2Deg(localCenter.getY(), localCenter.getX());//计算是否正对圆心
 
         // Our desired target position on the circle
         // Compute target based on uniform number, rotate rate, and time
+		// 计算应移动到的目标位置（圆心加一段相对位置）
         VecPosition target = center + VecPosition(circleRadius,0,0).rotateAboutZ(360.0/(NUM_AGENTS-1)*(worldModel->getUNum()-(worldModel->getUNum() > playerClosestToBall ? 1 : 0)) + worldModel->getTime()*rotateRate);
 
         // Adjust target to not be too close to teammates or the ball
+		// 算法修正目标位置，防止碰撞
         target = collisionAvoidance(true /*teammate*/, false/*opponent*/, true/*ball*/, 1/*proximity thresh*/, .5/*collision thresh*/, target, true/*keepDistance*/);
 
         if (me.getDistanceTo(target) < .25 && abs(localCenterAngle) <= 10) {
             // Close enough to desired position and orientation so just stand
+			//离目标很近且面对圆心角度小于10度，不需移动
             return SKILL_STAND;
         } else if (me.getDistanceTo(target) < .5) {
             // Close to desired position so start turning to face center
+			//离目标近但角度偏转较大，修正角度即可
             return goToTargetRelative(worldModel->g2l(target), localCenterAngle);
         } else {
             // Move toward target location
+			//移动到目标位置
             return goToTarget(target);
         }
     }

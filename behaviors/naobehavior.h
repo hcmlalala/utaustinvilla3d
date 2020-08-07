@@ -226,7 +226,12 @@ protected:
     double getStdNameParameter(const SkillType kick_skill, const std::string& parameter);
     void getSkillsForKickType(int kickType, SkillType skillsForType[]);
 
+	WorldObjType find_closet_obj_to_target(WorldObjType hand, WorldObjType last, VecPosition target);
+
     SkillType demoKickingCircle();
+	SkillType goalie();
+	SkillType guard();
+	SkillType vanguard();
 
 public:
 

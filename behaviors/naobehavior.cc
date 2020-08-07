@@ -1074,3 +1074,34 @@ string NaoBehavior::getMonMessage() {
     monMsg = "";
     return ret;
 }
+
+WorldObjType NaoBehavior::find_closet_obj_to_target(WorldObjType hand, WorldObjType last, VecPosition target)
+{
+	int playerClosestToTarget = -1;
+	double closestDistanceToTarget = 10000;
+	for (int i = hand; i < last + 1; ++i) {
+		VecPosition temp;
+		int playerNum = i - WO_TEAMMATE1 + 1;
+		if (worldModel->getUNum() == playerNum) {
+			// This is us
+			temp = worldModel->getMyPosition();
+		}
+		else {
+			WorldObject* teammate = worldModel->getWorldObject(i);
+			if (teammate->validPosition) {
+				temp = teammate->pos;
+			}
+			else {
+				continue;
+			}
+		}
+		temp.setZ(0);
+
+		double distanceToTarget = temp.getDistanceTo(target);
+		if (distanceToTarget < closestDistanceToTarget) {
+			playerClosestToTarget = playerNum;
+			closestDistanceToTarget = distanceToTarget;
+		}
+	}
+	return (WorldObjType)playerClosestToTarget;
+}
