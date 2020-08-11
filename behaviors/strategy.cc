@@ -7,16 +7,17 @@ extern int agentBodyType;
  * Real game beaming.
  * Filling params x y angle
  */
+/**/
 void NaoBehavior::beam( double& beamX, double& beamY, double& beamAngle ) {
     WorldObjType myNum=(WorldObjType)worldModel->getUNum();
 	switch (myNum)
 	{
-	//ÊØÃÅÔ±
+	//ï¿½ï¿½ï¿½ï¿½Ô±
 	case WO_TEAMMATE1:
 		beamX = -FIELD_X + 2;
 		beamY = 0;
 		break;
-	//ºóÎÀ*3
+	//ï¿½ï¿½ï¿½ï¿½*3
 	case WO_TEAMMATE2:
 		beamX = -HALF_FIELD_X / 2;
 		beamY = HALF_FIELD_Y / 2;
@@ -29,7 +30,7 @@ void NaoBehavior::beam( double& beamX, double& beamY, double& beamAngle ) {
 		beamX = -HALF_FIELD_X / 3;
 		beamY = 0;
 		break;
-	//Ç°·æ*7
+	//Ç°ï¿½ï¿½*7
 	case WO_TEAMMATE5:
 		beamX = -HALF_FIELD_X / 5;
 		beamY = -HALF_FIELD_Y / 4 * 3;
@@ -186,7 +187,7 @@ SkillType NaoBehavior::guard()
 
 	if (myPosition.getDistanceTo(ball) > 5 || myPosition.getX() > 0)
 	{
-		SIM::AngDeg localbeamAngle = atan2Deg(0, myPosition.getX() + 1);//¼ÆËãÊÇ·ñÕý¶ÔµÐ·½
+		SIM::AngDeg localbeamAngle = atan2Deg(0, myPosition.getX() + 1);//ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ÔµÐ·ï¿½
 		if (myPosition.getDistanceTo(beamPos) < 0.25 && abs(localbeamAngle) < 10)
 			return SKILL_STAND;
 		else if (myPosition.getDistanceTo(beamPos) < 0.5)
@@ -276,29 +277,29 @@ SkillType NaoBehavior::demoKickingCircle() {
 	else
 	{
         // Move to circle position around center and face the center
-        VecPosition localCenter = worldModel->g2l(center);//Ô²ÐÄ¾ø¶Ô×ø±ê×ªÏà¶Ô×ø±ê
-        SIM::AngDeg localCenterAngle = atan2Deg(localCenter.getY(), localCenter.getX());//¼ÆËãÊÇ·ñÕý¶ÔÔ²ÐÄ
+        VecPosition localCenter = worldModel->g2l(center);//Ô²ï¿½Ä¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        SIM::AngDeg localCenterAngle = atan2Deg(localCenter.getY(), localCenter.getX());//ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½Ô²ï¿½ï¿½
 
         // Our desired target position on the circle
         // Compute target based on uniform number, rotate rate, and time
-		// ¼ÆËãÓ¦ÒÆ¶¯µ½µÄÄ¿±êÎ»ÖÃ£¨Ô²ÐÄ¼ÓÒ»¶ÎÏà¶ÔÎ»ÖÃ£©
+		// ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½Î»ï¿½Ã£ï¿½Ô²ï¿½Ä¼ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½Ã£ï¿½
         VecPosition target = center + VecPosition(circleRadius,0,0).rotateAboutZ(360.0/(NUM_AGENTS-1)*(worldModel->getUNum()-(worldModel->getUNum() > playerClosestToBall ? 1 : 0)) + worldModel->getTime()*rotateRate);
 
         // Adjust target to not be too close to teammates or the ball
-		// Ëã·¨ÐÞÕýÄ¿±êÎ»ÖÃ£¬·ÀÖ¹Åö×²
+		// ï¿½ã·¨ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½Î»ï¿½Ã£ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½×²
         target = collisionAvoidance(true /*teammate*/, false/*opponent*/, true/*ball*/, 1/*proximity thresh*/, .5/*collision thresh*/, target, true/*keepDistance*/);
 
         if (me.getDistanceTo(target) < .25 && abs(localCenterAngle) <= 10) {
             // Close enough to desired position and orientation so just stand
-			//ÀëÄ¿±êºÜ½üÇÒÃæ¶ÔÔ²ÐÄ½Ç¶ÈÐ¡ÓÚ10¶È£¬²»ÐèÒÆ¶¯
+			//ï¿½ï¿½Ä¿ï¿½ï¿½Ü½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô²ï¿½Ä½Ç¶ï¿½Ð¡ï¿½ï¿½10ï¿½È£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½
             return SKILL_STAND;
         } else if (me.getDistanceTo(target) < .5) {
             // Close to desired position so start turning to face center
-			//ÀëÄ¿±ê½üµ«½Ç¶ÈÆ«×ª½Ï´ó£¬ÐÞÕý½Ç¶È¼´¿É
+			//ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¶ï¿½Æ«×ªï¿½Ï´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¶È¼ï¿½ï¿½ï¿½
             return goToTargetRelative(worldModel->g2l(target), localCenterAngle);
         } else {
             // Move toward target location
-			//ÒÆ¶¯µ½Ä¿±êÎ»ÖÃ
+			//ï¿½Æ¶ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½Î»ï¿½ï¿½
             return goToTarget(target);
         }
     }
